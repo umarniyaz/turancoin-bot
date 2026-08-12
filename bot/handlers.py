@@ -1,6 +1,6 @@
 from telegram import Update
 from telegram.ext import ContextTypes
-from config.config import MIN_WITHDRAWAL, PREMIUM_PRICE, REFERRAL_REWARD
+from config.config import MIN_WITHDRAWAL, PREMIUM_PRICE, REFERRAL_REWARD, ADMIN_ID
 from database.db import get_db
 from utils.helpers import get_user, create_user, check_ip_limit, coin_to_tl, is_premium_active
 from bot.keyboard import start_keyboard, back_keyboard, premium_keyboard, confirm_withdraw_keyboard
@@ -11,12 +11,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     username = user.username or "Bilinmiyor"
     first_name = user.first_name or "Bilinmiyor"
     
-    # IP kontrolü (gerçek uygulamada request'ten alınır, şimdilik placeholder)
     ip_address = "127.0.0.1"
     
     create_user(user_id, username, first_name, ip_address)
     
-    # Referans kontrolü
     if context.args and len(context.args) > 0:
         referrer_id = int(context.args[0])
         if referrer_id != user_id:
@@ -36,7 +34,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 conn.commit()
             conn.close()
     
-    webapp_url = "https://turan-coins.onrender.com"  # Geçici URL, sonra değişecek
+    webapp_url = "https://turan-coins.onrender.com"
     
     await update.message.reply_text(
         f"🪙 *Turan Coin'e Hoş Geldin {first_name}!*\n\n"
@@ -50,6 +48,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     user_id = query.from_user.id
+    username = query.from_user.username or "Bilinmiyor"
     
     if query.data == "main_menu":
         webapp_url = "https://turan-coins.onrender.com"
@@ -88,13 +87,22 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == "premium":
         await query.edit_message_text(
             "👑 *Premium Üyelik*\n\n"
-            f"• Coin değerin 5 katına çıkar (0.5 TL)\n"
-            f"• Sınırsız reklam izleme\n"
-            f"• Otomatik reklam izleme\n"
-            f"• İstanbulkart yükleme\n\n"
-            f"💰 Fiyat: {PREMIUM_PRICE} TL\n"
-            f"💎 Maksimum kazanç: 30 TL",
+            "• Reklam başına 0.5 TL kazan\n"
+            "• Sınırsız reklam izleme hakkı\n"
+            "• İstanbulkart'a yükleme imkanı\n\n"
+            f"💰 Fiyat: {PREMIUM_PRICE} TL\n\n"
+            "📩 Satın almak için: @turancoinsdestek",
             reply_markup=premium_keyboard(),
+            parse_mode="Markdown"
+        )
+    
+    elif query.data == "buy_premium":
+        await query.edit_message_text(
+            "📩 *Premium Satın Alma*\n\n"
+            "Premium satın almak için lütfen yönetici ile iletişime geçin:\n\n"
+            "👤 @turancoinsdestek\n\n"
+            "Ödemenizi yaptıktan sonra Telegram ID'nizi iletin, premium üyeliğiniz aktifleştirilsin.",
+            reply_markup=back_keyboard(),
             parse_mode="Markdown"
         )
     
@@ -127,16 +135,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "1. Mini App'i aç\n"
             "2. Reklam izle, coin kazan\n"
             "3. 50 TL olunca para çek\n\n"
-            "📩 Destek için: @TuranCoinDestek",
-            reply_markup=back_keyboard(),
-            parse_mode="Markdown"
-        )
-    
-    elif query.data == "buy_premium":
-        await query.edit_message_text(
-            "👑 *Premium Satın Alma*\n\n"
-            "Premium üyeliği satın almak için lütfen yönetici ile iletişime geç.\n\n"
-            "📩 @TuranCoinDestek",
+            "📩 Destek için: @turancoinsdestek",
             reply_markup=back_keyboard(),
             parse_mode="Markdown"
         )
