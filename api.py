@@ -1,9 +1,10 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 from database.db import get_db, init_db
 from utils.helpers import get_user, create_user, coin_to_tl, is_premium_active
-import json
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/api/get_user', methods=['POST'])
 def get_user_data():
