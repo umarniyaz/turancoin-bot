@@ -1,12 +1,15 @@
 import threading
+import os
+import asyncio
 import api
 from bot.bot import run_bot
 
 if __name__ == '__main__':
     # API'yi ayrı thread'de başlat
-    api_thread = threading.Thread(target=api.app.run, kwargs={'host': '0.0.0.0', 'port': 5000})
+    port = int(os.environ.get('PORT', 10000))
+    api_thread = threading.Thread(target=api.app.run, kwargs={'host': '0.0.0.0', 'port': port})
     api_thread.daemon = True
     api_thread.start()
     
-    # Botu başlat
-    run_bot()
+    # Botu asyncio ile başlat
+    asyncio.run(run_bot())
