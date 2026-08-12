@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from database.db import get_db, init_db
 from utils.helpers import get_user, create_user, coin_to_tl, is_premium_active
-import threading
 
 app = Flask(__name__)
 CORS(app)
@@ -58,14 +57,6 @@ def add_coins():
     conn.close()
     return jsonify({'success': False})
 
-def start_bot():
-    from bot.bot import run_bot
-    run_bot()
-
-init_db()
-bot_thread = threading.Thread(target=start_bot)
-bot_thread.daemon = True
-bot_thread.start()
-
 if __name__ == '__main__':
+    init_db()
     app.run(host='0.0.0.0', port=5000)
