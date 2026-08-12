@@ -145,14 +145,15 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     elif query.data == "withdraw":
         user = get_user(user_id)
-        tl_value = coin_to_tl(user["balance"], is_premium_active(user_id))
+        is_prem = is_premium_active(user_id)
+        tl_value = coin_to_tl(user["balance"], is_prem)
         
         if tl_value < MIN_WITHDRAWAL:
             await query.edit_message_text(
                 f"💸 *Para Çek*\n\n"
                 f"Mevcut bakiyen: {tl_value:.2f} TL\n"
                 f"Minimum çekim: {MIN_WITHDRAWAL} TL\n\n"
-                f"❌ Henüz yeterli bakiyen yok.",
+                f"❌ Henüz yeterli bakiyen yok. Daha fazla reklam izleyin!",
                 reply_markup=back_keyboard(),
                 parse_mode="Markdown"
             )
@@ -160,8 +161,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await query.edit_message_text(
                 f"💸 *Para Çek*\n\n"
                 f"Mevcut bakiyen: {tl_value:.2f} TL\n\n"
-                f"Çekim talebi için IBAN'ını bot'a özel mesaj olarak gönder.\n"
-                f"Örnek: TR00 0000 0000 0000 0000 0000 00",
+                f"Çekim için: @turancoinsdestek\n"
+                f"Mesaj atın: 'Para çekmek istiyorum, ID: {user_id}'\n\n"
+                f"IBAN bilginizi yöneticiye iletin.",
                 reply_markup=back_keyboard(),
                 parse_mode="Markdown"
             )
