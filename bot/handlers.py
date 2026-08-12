@@ -35,12 +35,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             conn.close()
     
     webapp_url = "https://turan-coins.onrender.com"
+    is_prem = is_premium_active(user_id)
     
     await update.message.reply_text(
         f"🪙 *Turan Coin'e Hoş Geldin {first_name}!*\n\n"
         "Reklam izle, coin kazan, paraya çevir!\n\n"
         "👇 Başlamak için Mini App'i aç:",
-        reply_markup=start_keyboard(webapp_url),
+        reply_markup=start_keyboard(webapp_url, is_prem),
         parse_mode="Markdown"
     )
 
@@ -52,9 +53,10 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     if query.data == "main_menu":
         webapp_url = "https://turan-coins.onrender.com"
+        is_prem = is_premium_active(user_id)
         await query.edit_message_text(
             "🪙 *Ana Menü*\n\n👇 Başlamak için Mini App'i aç:",
-            reply_markup=start_keyboard(webapp_url),
+            reply_markup=start_keyboard(webapp_url, is_prem),
             parse_mode="Markdown"
         )
     
@@ -105,6 +107,41 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=back_keyboard(),
             parse_mode="Markdown"
         )
+    
+    elif query.data == "istanbulkart":
+        user = get_user(user_id)
+        is_prem = is_premium_active(user_id)
+        
+        if not is_prem:
+            await query.edit_message_text(
+                "❌ Bu özellik sadece premium kullanıcılara özeldir.",
+                reply_markup=back_keyboard(),
+                parse_mode="Markdown"
+            )
+            return
+        
+        tl_value = coin_to_tl(user["balance"], True)
+        
+        if tl_value < 50:
+            await query.edit_message_text(
+                f"🚌 *İstanbulkart Yükleme*\n\n"
+                f"Mevcut bakiyen: {tl_value:.2f} TL\n"
+                f"Gerekli bakiye: 50 TL\n\n"
+                f"❌ Bakiyeniz yetersiz.",
+                reply_markup=back_keyboard(),
+                parse_mode="Markdown"
+            )
+        else:
+            await query.edit_message_text(
+                f"🚌 *İstanbulkart Yükleme*\n\n"
+                f"Mevcut bakiyen: {tl_value:.2f} TL\n"
+                f"Yüklenecek tutar: 50 TL\n"
+                f"Kalan bakiye: {tl_value - 50:.2f} TL\n\n"
+                f"Yükleme için: @turancoinsdestek\n"
+                f"Mesaj atın: 'İstanbulkart yüklemek istiyorum, ID: {user_id}'",
+                reply_markup=back_keyboard(),
+                parse_mode="Markdown"
+            )
     
     elif query.data == "withdraw":
         user = get_user(user_id)

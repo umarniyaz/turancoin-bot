@@ -1,6 +1,6 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 
-def start_keyboard(webapp_url):
+def start_keyboard(webapp_url, is_premium=False):
     keyboard = [
         [InlineKeyboardButton("🚀 Mini App'i Aç", web_app=WebAppInfo(url=webapp_url))],
         [InlineKeyboardButton("💰 Bakiye Sorgula", callback_data="balance")],
@@ -9,6 +9,10 @@ def start_keyboard(webapp_url):
         [InlineKeyboardButton("💸 Para Çek", callback_data="withdraw")],
         [InlineKeyboardButton("ℹ️ Yardım", callback_data="help")]
     ]
+    
+    if is_premium:
+        keyboard.insert(3, [InlineKeyboardButton("🚌 İstanbulkart Yükle", callback_data="istanbulkart")])
+    
     return InlineKeyboardMarkup(keyboard)
 
 def back_keyboard():
@@ -17,7 +21,7 @@ def back_keyboard():
 
 def premium_keyboard():
     keyboard = [
-        [InlineKeyboardButton("👑 Premium Satın Al (100 TL)", callback_data="buy_premium")],
+        [InlineKeyboardButton("👑 Premium Satın Al", callback_data="buy_premium")],
         [InlineKeyboardButton("🔙 Ana Menü", callback_data="main_menu")]
     ]
     return InlineKeyboardMarkup(keyboard)
