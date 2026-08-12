@@ -51,10 +51,7 @@ def is_premium_active(user_id):
     user = conn.execute("SELECT * FROM users WHERE user_id = ?", (user_id,)).fetchone()
     conn.close()
     
-    if not user or not user["is_premium"]:
-        return False
-    
-    if user["premium_earned"] >= user["premium_expiry"]:
+    if not user or not user['is_premium']:
         return False
     
     return True
@@ -62,6 +59,6 @@ def is_premium_active(user_id):
 def check_auto_clicker(user_id, last_time):
     if last_time:
         diff = (datetime.now() - datetime.fromisoformat(last_time)).total_seconds()
-        if diff < 5:  # 5 saniyeden hızlı izlenemez
+        if diff < 5:
             return True
     return False
