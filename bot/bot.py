@@ -8,20 +8,15 @@ from telegram.ext import ContextTypes
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     
-    # Kullanıcı IBAN gönderiyorsa
     if update.message.text and update.message.text.startswith("TR"):
         conn = get_db()
         user = conn.execute("SELECT * FROM users WHERE user_id = ?", (user_id,)).fetchone()
         conn.close()
         
-        # Burada coin_to_tl fonksiyonu lazım, ileride düzeltiriz
-        # Şimdilik basit tutalım
-        
         await update.message.reply_text(
             "✅ IBAN'ın alındı. Çekim talebin yöneticiye iletildi. Onay bekleniyor."
         )
         
-        # Admin'e bildir
         await context.bot.send_message(
             chat_id=ADMIN_ID,
             text=f"💸 Yeni çekim talebi!\nKullanıcı: @{update.effective_user.username}\nIBAN: {update.message.text}"
@@ -46,18 +41,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 def run_bot():
-    # Veritabanını başlat
     init_db()
     
-    # Botu oluştur
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     
-    # Komutlar
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(button_handler))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     
     print("🤖 Turan Coin Bot başlatıldı!")
     
-    # Botu çalıştır
     app.run_polling()
