@@ -2,8 +2,27 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from config.config import MIN_WITHDRAWAL, PREMIUM_PRICE, REFERRAL_REWARD, ADMIN_ID
 from database.db import get_db
-from utils.helpers import get_user, create_user, check_ip_limit, coin_to_tl, is_premium_active
+from utils.helpers import get_user, create_user, check_ip_limit, is_premium_active
 from bot.keyboard import start_keyboard, back_keyboard, premium_keyboard, confirm_withdraw_keyboard
+
+def get_lig_rate(total_ads, is_prem=False):
+    if total_ads >= 3001:
+        rate = 0.25
+    elif total_ads >= 1501:
+        rate = 0.18
+    elif total_ads >= 701:
+        rate = 0.12
+    elif total_ads >= 301:
+        rate = 0.08
+    elif total_ads >= 101:
+        rate = 0.05
+    else:
+        rate = 0.03
+    
+    if is_prem:
+        rate = rate * 2
+    
+    return rate
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -63,14 +82,17 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == "balance":
         user = get_user(user_id)
         is_prem = is_premium_active(user_id)
-        tl_value = coin_to_tl(user["balance"], is_prem)
+        total_ads = user['total_earned'] if user['total_earned'] else 0
+        rate = get_lig_rate(total_ads, is_prem)
+        tl_value = user['balance'] * rate
         
         await query.edit_message_text(
             f"💰 *Bakiyen*\n\n"
             f"Coin: {user['balance']}\n"
             f"TL Değeri: {tl_value:.2f} TL\n"
             f"Premium: {'✅ Aktif' if is_prem else '❌ Pasif'}\n"
-            f"Toplam Kazanç: {user['total_earned']} coin",
+            f"Toplam Reklam: {total_ads}\n"
+            f"Lig Oranı: {rate:.2f} TL/reklam",
             reply_markup=back_keyboard(),
             parse_mode="Markdown"
         )
@@ -89,10 +111,10 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == "premium":
         await query.edit_message_text(
             "👑 *Premium Üyelik*\n\n"
-            "• Reklam başına 0.5 TL kazan\n"
+            "• Reklam başına 2 kat kazanç\n"
             "• Sınırsız reklam izleme hakkı\n"
             "• İstanbulkart'a yükleme imkanı\n\n"
-            f"💰 Fiyat: {PREMIUM_PRICE} TL\n\n"
+            f"💰 Fiyat: {PREMIUM_PRICE} TL (Tek Seferlik)\n\n"
             "📩 Satın almak için: @turancoinsdestek",
             reply_markup=premium_keyboard(),
             parse_mode="Markdown"
@@ -120,7 +142,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return
         
-        tl_value = coin_to_tl(user["balance"], True)
+        total_ads = user['total_earned'] if user['total_earned'] else 0
+        rate = get_lig_rate(total_ads, True)
+        tl_value = user['balance'] * rate
         
         if tl_value < 50:
             await query.edit_message_text(
@@ -146,7 +170,9 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == "withdraw":
         user = get_user(user_id)
         is_prem = is_premium_active(user_id)
-        tl_value = coin_to_tl(user["balance"], is_prem)
+        total_ads = user['total_earned'] if user['total_earned'] else 0
+        rate = get_lig_rate(total_ads, is_prem)
+        tl_value = user['balance'] * rate
         
         if tl_value < MIN_WITHDRAWAL:
             await query.edit_message_text(
