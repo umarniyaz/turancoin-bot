@@ -1,3 +1,4 @@
+import asyncio
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters
 from config.config import BOT_TOKEN, ADMIN_ID, MIN_WITHDRAWAL
 from bot.handlers import start, button_handler
@@ -167,7 +168,6 @@ async def kart_onay(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Bu kullanıcı premium değil!")
         return
     
-    # 50 TL = 100 coin (premium: 1 coin = 0.5 TL)
     if user['balance'] < 100:
         conn.close()
         await update.message.reply_text("❌ Kullanıcının bakiyesi yetersiz! (Gerekli: 100 coin)")
@@ -228,4 +228,4 @@ def run_bot():
     
     print("🤖 Turan Coin Bot başlatıldı!")
     
-    app.run_polling()
+    asyncio.run(app.run_polling())
