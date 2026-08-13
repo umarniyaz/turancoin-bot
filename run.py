@@ -1,6 +1,5 @@
 import threading
 import os
-import asyncio
 import api
 from bot.bot import run_bot
 from backup import restore_from_github, start_backup_loop
@@ -19,4 +18,11 @@ if __name__ == '__main__':
     start_backup_loop()
     
     # Botu başlat
-    asyncio.run(run_bot())
+    bot_thread = threading.Thread(target=run_bot)
+    bot_thread.daemon = True
+    bot_thread.start()
+    
+    # Ana thread'i canlı tut
+    import time
+    while True:
+        time.sleep(3600)
