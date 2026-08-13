@@ -6,6 +6,20 @@ from utils.helpers import get_user, create_user, coin_to_tl, is_premium_active
 app = Flask(__name__)
 CORS(app)
 
+def get_lig(total_ads):
+    if total_ads >= 3001:
+        return {'name': 'Efsane', 'rate': 0.25}
+    elif total_ads >= 1501:
+        return {'name': 'Elit', 'rate': 0.18}
+    elif total_ads >= 701:
+        return {'name': 'Platin', 'rate': 0.12}
+    elif total_ads >= 301:
+        return {'name': 'Altın', 'rate': 0.08}
+    elif total_ads >= 101:
+        return {'name': 'Gümüş', 'rate': 0.05}
+    else:
+        return {'name': 'Bronz', 'rate': 0.03}
+
 @app.route('/api/get_user', methods=['POST'])
 def get_user_data():
     data = request.json
@@ -22,12 +36,20 @@ def get_user_data():
     
     if user:
         is_prem = is_premium_active(user_id)
+        total_ads = int(user['total_earned'])
+        lig = get_lig(total_ads)
+        
+        if is_prem:
+            lig['rate'] = lig['rate'] * 2
+        
         return jsonify({
             'success': True,
             'balance': user['balance'],
             'total_earned': user['total_earned'],
             'ads_watched_today': user['ads_watched_today'],
-            'is_premium': is_prem
+            'is_premium': is_prem,
+            'lig_name': lig['name'],
+            'lig_rate': lig['rate']
         })
     return jsonify({'success': False})
 
@@ -42,7 +64,7 @@ def add_coins():
     
     if user:
         new_balance = user['balance'] + coins
-        new_total = user['total_earned'] + coins
+        new_total = user['total_earned'] + 1
         new_ads = user['ads_watched_today'] + 1
         
         conn.execute(
@@ -52,7 +74,7 @@ def add_coins():
         conn.commit()
         conn.close()
         
-        return jsonify({'success': True, 'new_balance': new_balance})
+        return jsonify({'success': True, 'new_balance': new_balance, 'total_earned': new_total})
     
     conn.close()
     return jsonify({'success': False})
