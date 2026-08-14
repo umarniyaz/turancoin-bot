@@ -1,10 +1,19 @@
 import asyncio
+import time
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters
 from config.config import BOT_TOKEN, ADMIN_ID, MIN_WITHDRAWAL
 from bot.handlers import start, button_handler
 from database.db import init_db, get_db
 from telegram import Update
 from telegram.ext import ContextTypes
+
+def get_miner_duration(plan):
+    if plan == 'pro':
+        return 24 * 60 * 60
+    elif plan == 'apex':
+        return 30 * 24 * 60 * 60
+    else:
+        return 3 * 60 * 60
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -316,11 +325,26 @@ async def miner_onay(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     ''')
     
-    conn.execute('''
-        INSERT INTO miner_status (user_id, plan, is_active)
-        VALUES (?, ?, 0)
-        ON CONFLICT(user_id) DO UPDATE SET plan = ?
-    ''', (target_id, plan, plan))
+    # Mevcut miner durumunu al
+    status = conn.execute("SELECT * FROM miner_status WHERE user_id = ?", (target_id,)).fetchone()
+    
+    if status and status['is_active'] == 1:
+        # Aktif miner varsa, süreyi yeni plana göre güncelle
+        current_time = time.time()
+        duration = get_miner_duration(plan)
+        
+        conn.execute('''
+            UPDATE miner_status SET plan = ?, start_time = ?, end_time = ?
+            WHERE user_id = ?
+        ''', (plan, current_time, current_time + duration, target_id))
+    else:
+        # Aktif miner yoksa sadece plan'ı değiştir
+        conn.execute('''
+            INSERT INTO miner_status (user_id, plan, is_active)
+            VALUES (?, ?, 0)
+            ON CONFLICT(user_id) DO UPDATE SET plan = ?
+        ''', (target_id, plan, plan))
+    
     conn.commit()
     conn.close()
     
