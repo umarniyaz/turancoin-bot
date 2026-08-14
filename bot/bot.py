@@ -47,6 +47,8 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"/kart_red ID - İstanbulkart reddet\n"
         f"/uc_onay ID UC_MIKTARI - UC ver\n"
         f"/uc_red ID - UC reddet\n"
+        f"/miner_onay ID pro|apex - Madenci paketi ver\n"
+        f"/miner_red ID - Madenci reddet\n"
         f"/liderlik - Aylık liderlik"
     )
 
@@ -284,6 +286,76 @@ async def uc_red(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except:
         pass
 
+async def miner_onay(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    if str(user_id) != ADMIN_ID:
+        await update.message.reply_text("❌ Bu komutu kullanma yetkiniz yok.")
+        return
+    
+    if len(context.args) < 2:
+        await update.message.reply_text("Kullanım: /miner_onay KULLANICI_ID pro|apex")
+        return
+    
+    target_id = int(context.args[0])
+    plan = context.args[1].lower()
+    
+    if plan not in ['pro', 'apex']:
+        await update.message.reply_text("❌ Geçersiz paket! pro veya apex yazın.")
+        return
+    
+    conn = get_db()
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS miner_status (
+            user_id INTEGER PRIMARY KEY,
+            plan TEXT DEFAULT 'temel',
+            start_time REAL,
+            end_time REAL,
+            total_coins REAL DEFAULT 0,
+            is_active INTEGER DEFAULT 0,
+            last_check_time REAL
+        )
+    ''')
+    
+    conn.execute('''
+        INSERT INTO miner_status (user_id, plan, is_active)
+        VALUES (?, ?, 0)
+        ON CONFLICT(user_id) DO UPDATE SET plan = ?
+    ''', (target_id, plan, plan))
+    conn.commit()
+    conn.close()
+    
+    plan_name = 'Pro' if plan == 'pro' else 'Apex'
+    await update.message.reply_text(f"✅ {target_id} ID'li kullanıcıya {plan_name} Madenci verildi!")
+    
+    try:
+        await context.bot.send_message(
+            chat_id=target_id,
+            text=f"🎉 {plan_name} Madenci Aktif!\n\nYeni paketiniz hazır. Madenci sayfasından başlatabilirsiniz."
+        )
+    except:
+        pass
+
+async def miner_red(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    if str(user_id) != ADMIN_ID:
+        await update.message.reply_text("❌ Bu komutu kullanma yetkiniz yok.")
+        return
+    
+    if not context.args:
+        await update.message.reply_text("Kullanım: /miner_red KULLANICI_ID")
+        return
+    
+    target_id = int(context.args[0])
+    await update.message.reply_text(f"✅ {target_id} ID'li kullanıcının madenci talebi reddedildi.")
+    
+    try:
+        await context.bot.send_message(
+            chat_id=target_id,
+            text="❌ Madenci paketi talebiniz reddedildi."
+        )
+    except:
+        pass
+
 async def liderlik(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     if str(user_id) != ADMIN_ID:
@@ -331,6 +403,8 @@ def run_bot():
     app.add_handler(CommandHandler("kart_red", kart_red))
     app.add_handler(CommandHandler("uc_onay", uc_onay))
     app.add_handler(CommandHandler("uc_red", uc_red))
+    app.add_handler(CommandHandler("miner_onay", miner_onay))
+    app.add_handler(CommandHandler("miner_red", miner_red))
     app.add_handler(CommandHandler("liderlik", liderlik))
     app.add_handler(CallbackQueryHandler(button_handler))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
