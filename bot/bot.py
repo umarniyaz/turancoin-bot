@@ -36,7 +36,7 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     conn.close()
     
     await update.message.reply_text(
-        f"🛡️ *Admin Panel*\n\n"
+        f"🛡️ Admin Panel\n\n"
         f"👥 Toplam kullanıcı: {users['count']}\n"
         f"👑 Premium kullanıcı: {premium['count']}\n\n"
         f"Komutlar:\n"
@@ -47,8 +47,7 @@ async def panel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"/kart_red ID - İstanbulkart reddet\n"
         f"/uc_onay ID UC_MIKTARI - UC ver\n"
         f"/uc_red ID - UC reddet\n"
-        f"/liderlik - Aylık liderlik",
-        parse_mode="Markdown"
+        f"/liderlik - Aylık liderlik"
     )
 
 async def kontrol(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -73,7 +72,7 @@ async def kontrol(update: Update, context: ContextTypes.DEFAULT_TYPE):
     premium_durum = "✅ Aktif" if user['is_premium'] else "❌ Pasif"
     
     await update.message.reply_text(
-        f"👤 *Kullanıcı Detayı*\n\n"
+        f"👤 Kullanıcı Detayı\n\n"
         f"🆔 ID: {user['user_id']}\n"
         f"👤 İsim: {user['first_name']}\n"
         f"📛 Kullanıcı adı: @{user['username']}\n"
@@ -81,8 +80,7 @@ async def kontrol(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"💰 Toplam kazanç: {user['total_earned']} coin\n"
         f"📊 Bugün izlenen: {user['ads_watched_today']}\n"
         f"👑 Premium: {premium_durum}\n"
-        f"📅 Kayıt: {user['join_date']}",
-        parse_mode="Markdown"
+        f"📅 Kayıt: {user['join_date']}"
     )
 
 async def premium_onay(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -116,8 +114,7 @@ async def premium_onay(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         await context.bot.send_message(
             chat_id=target_id,
-            text="🎉 *Premium Üyeliğiniz Aktif!*\n\nArtık reklam başına 2 kat kazanıyorsunuz!",
-            parse_mode="Markdown"
+            text="🎉 Premium Üyeliğiniz Aktif!\n\nArtık reklam başına 2 kat kazanıyorsunuz!"
         )
     except:
         pass
@@ -186,8 +183,7 @@ async def kart_onay(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         await context.bot.send_message(
             chat_id=target_id,
-            text="🚌 *İstanbulkart Yükleme Onaylandı!*\n\n50 TL İstanbulkart'ınıza yüklendi.",
-            parse_mode="Markdown"
+            text="🚌 İstanbulkart Yükleme Onaylandı!\n\n50 TL İstanbulkart'ınıza yüklendi."
         )
     except:
         pass
@@ -226,7 +222,6 @@ async def uc_onay(update: Update, context: ContextTypes.DEFAULT_TYPE):
     target_id = int(context.args[0])
     uc_amount = int(context.args[1])
     
-    # UC paketleri ve coin maliyetleri
     uc_packages = {
         60: 1500,
         120: 3000,
@@ -263,8 +258,7 @@ async def uc_onay(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         await context.bot.send_message(
             chat_id=target_id,
-            text=f"🎮 *PUBG UC Yüklendi!*\n\n✅ {uc_amount} UC hesabınıza tanımlandı.\nİyi oyunlar!",
-            parse_mode="Markdown"
+            text=f"🎮 PUBG UC Yüklendi!\n\n✅ {uc_amount} UC hesabınıza tanımlandı.\nİyi oyunlar!"
         )
     except:
         pass
@@ -314,14 +308,14 @@ async def liderlik(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("📊 Bu ay henüz veri yok.")
         return
     
-    text = f"🏆 *Aylık Liderlik ({current_month})*\n\n"
+    text = f"🏆 Aylık Liderlik ({current_month})\n\n"
     
     for i, row in enumerate(top_users, 1):
         medal = '🥇' if i == 1 else '🥈' if i == 2 else '🥉' if i == 3 else f'{i}.'
         name = row['first_name'] or row['username'] or 'Kullanıcı'
         text += f"{medal} {name}: {row['ads_count']} reklam\n"
     
-    await update.message.reply_text(text, parse_mode="Markdown")
+    await update.message.reply_text(text)
 
 def run_bot():
     init_db()
