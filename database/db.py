@@ -9,7 +9,6 @@ def init_db():
     conn = get_db()
     cursor = conn.cursor()
     
-    # Kullanıcı tablosu
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY,
@@ -28,7 +27,6 @@ def init_db():
         )
     ''')
     
-    # Referans tablosu
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS referrals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,7 +37,6 @@ def init_db():
         )
     ''')
     
-    # Çekim talepleri
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS withdrawals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,6 +46,16 @@ def init_db():
             status TEXT DEFAULT 'pending',
             request_date TEXT DEFAULT CURRENT_TIMESTAMP,
             processed_date TEXT
+        )
+    ''')
+    
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS monthly_leaderboard (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            month TEXT,
+            ads_count INTEGER DEFAULT 0,
+            UNIQUE(user_id, month)
         )
     ''')
     
